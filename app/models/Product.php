@@ -42,23 +42,24 @@ class Product {
 
     public static function create() {
         try {
-            $name = $_POST["name"];
-            $price = $_POST["price"];
-            $manufacturer = $_POST["manufacturerId"];
+            $data = json_decode(file_get_contents('php://input'), true);
+
+            $name = $data["name"];
+            $price = $data["price"];
+            $manufacturer = $data["manufacturerId"];
 
             $query = "INSERT INTO product (name, price, manufacturerId) VALUES ('$name', '$price', '$manufacturer')";
 
             if(Model::db()->exec($query)) {
-                $response=array(
+                $response = [
                     'status' => 1,
-                    'status_message' => 'Product Added Successfully.'
-                );
-            }
-            else {
-                $response=array(
+                    'status_message' => 'Product Added Successfully'
+                ];
+            } else {
+                $response = [
                     'status' => 0,
-                    'status_message' => 'Product Addition Failed.'
-                );
+                    'status_message' => 'Product Addition Failed'
+                ];
             }
             header('Content-Type: application/json');
             echo json_encode($response);
@@ -68,34 +69,34 @@ class Product {
         }
     }
 
-    /*public static function update($id) {
+    public static function update($id) {
         try {
-            parse_str(file_get_contents("php://input"), $data);
+            $predata = file_get_contents("php://input");
+            $data = json_decode($predata, true);
 
-            $name = $data['name'];
-            $price = $data['price'];
-            $manufacturerId = $data['manufacturerId'];
-
-            $stmt = Model::db()->prepare("UPDATE product SET name = ". $name .", price = ". $price .", manufacturerId = ". $manufacturerId ." WHERE id = " . $id);
+            $stmt = Model::db()->prepare("UPDATE product SET name = :name, price = :price, manufacturerId = :manufacturerId WHERE id = " . $id);
+            $stmt->bindParam(':name', $data['name'], PDO::PARAM_STR);
+            $stmt->bindParam(':price', $data['price'], PDO::PARAM_INT);
+            $stmt->bindParam(':manufacturerId', $data['manufacturerId'], PDO::PARAM_INT);
 
             if ($stmt->execute()) {
-                $res = [
+                $response = [
                     'status' => 1,
                     'message' => 'Product Updated Successfully'
                 ];
             } else {
-                $res = [
+                $response = [
                     'status' => 0,
                     'message' => 'Product Update Failed'
                 ];
             }
             header('Content-Type: application/json');
-            echo json_encode($res);
+            echo json_encode($response);
 
         } catch (PDOException $e) {
             echo 'Error: ' . $e->getMessage();
         }
-    }*/
+    }
 
     public static function delete($id) {
         try {
